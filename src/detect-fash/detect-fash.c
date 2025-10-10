@@ -88,7 +88,7 @@ static int detect_hyprland(void) {
 		hyprland_abs_path = XDG_CONFIG_HOME;
 	}
 	strcat(hyprland_abs_path, hyprland_config);
-	if (access(hyprland_abs_path, F_OK) != 0)
+	if (access(hyprland_abs_path, F_OK) == 0)
 		return 1;
 	return 0;
 }
@@ -115,7 +115,8 @@ static int detect_dhh(void) {
 	char get_fingerprint_cmd[] = "ssh-keygen -E sha256 -lf ";
 	strcat(get_fingerprint_cmd, ssh_pubkey_abs_path);
 	char fingerprint[70];
-	fgets(fingerprint, 70, popen(get_fingerprint_cmd, "r"));
+	FILE *fingerprint_cmd_output = popen(get_fingerprint_cmd, "r");
+	fgets(fingerprint, 70, fingerprint_cmd_output);
 
 	/* comare it to DHH's fingerprint */
 	if (strstr(fingerprint, dhh_fingerprint) != NULL)
@@ -245,9 +246,9 @@ static int run(int argc, char *argv[]) {
 		break;
 	
 	case ONLY_HYPRLAND:
-		ladybird = detect_hyprland();
-		fascism = ladybird;
-		if (ladybird < 0)
+		hyprland = detect_hyprland();
+		fascism = hyprland;
+		if (hyprland < 0)
 			return log_error_errno(fascism, "Failed to check for hyprland: %m");
 		break;
 	
