@@ -74,9 +74,19 @@ static int detect_ladybird() {
 static int detect_hyprland() {
 	char *hyprland_config = "/hypr/hyprland.conf";
 	char *XDG_CONFIG_HOME = getenv("XDG_CONFIG_HOME");
-	if (XDG_CONFIG_HOME == NULL)
-		return -1; 
-	char *hyprland_abs_path = strdup(XDG_CONFIG_HOME);
+
+	char *hyprland_abs_path;
+
+	/* fallback if xdg vars is unavailable, check $HOME/.config */
+	if (XDG_CONFIG_HOME == NULL){
+		char *HOME = getenv("HOME");
+		if (HOME == NULL)
+			return -1;
+		strcat(HOME, "/.config");
+		hyprland_abs_path = HOME;
+	} else {
+		hyprland_abs_path = XDG_CONFIG_HOME;
+	}
 	strcat(hyprland_abs_path, hyprland_config);
 	if (access(hyprland_abs_path, F_OK) != 0)
 		return 1;
