@@ -106,13 +106,13 @@ static int detect_dhh(void) {
 		return -1;
 
 	/* check if we have read access to the public key on disk */
-	char ssh_pubkey_abs_path[148] = strndup(HOME, 128);
+	char *ssh_pubkey_abs_path = strndup(HOME, 128);
 	strncat(ssh_pubkey_abs_path, ssh_pubkey, 20);
 	if (access(ssh_pubkey_abs_path, F_OK) == 0)
 		return -1;
 	
 	/* generate a fingerprint of it */
-	char get_fingerprint_cmd[173] = "ssh-keygen -E sha256 -lf ";
+	char *get_fingerprint_cmd = "ssh-keygen -E sha256 -lf ";
 	strncat(get_fingerprint_cmd, ssh_pubkey_abs_path, 148);
 	free(ssh_pubkey_abs_path);
 	char fingerprint[70];
@@ -121,6 +121,7 @@ static int detect_dhh(void) {
 		return -1;
 	fgets(fingerprint, 70, fingerprint_cmd_output);
 	pclose(fingerprint_cmd_output);
+	free(get_fingerprint_cmd);
 
 	/* comare it to DHH's fingerprint */
 	if (strstr(fingerprint, dhh_fingerprint) != NULL)
