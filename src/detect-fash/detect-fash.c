@@ -22,7 +22,7 @@ static enum {
 } arg_mode = ANY_FASCISM;
 
 /* detects if os-release is omarchy */
-int detect_omarchy() {
+static int detect_omarchy(void) {
 	const char *term = "omarchy";
 	const int len = 100;
 
@@ -40,7 +40,7 @@ int detect_omarchy() {
 }
 
 /* detects if the binary "ladybird" exists in $PATH */
-int detect_ladybird() {
+static int detect_ladybird(void) {
 	const char *term = "/ladybird";
 	const int spath_maxlen = 256;
 
@@ -71,7 +71,7 @@ int detect_ladybird() {
 }
 
 /* detects if hyprland is installed */
-int detect_hyprland() {
+static int detect_hyprland(void) {
 	const char *hyprland_config = "/hypr/hyprland.conf";
 	char *XDG_CONFIG_HOME = getenv("XDG_CONFIG_HOME");
 
@@ -94,7 +94,7 @@ int detect_hyprland() {
 }
 
 /* detects if this is dhh's computer using his ssh pubkey */
-int detect_dhh() {
+static int detect_dhh(void) {
 	/* fingerprint of dhh's ssh public key */
 	const char *dhh_fingerprint = "SHA256:YCKX7xo5Hkihy/NVH5ang8Oty9q8Vvqu4sxI7EbDxPg";
 	/* path to ssh pubkey */
@@ -112,7 +112,7 @@ int detect_dhh() {
 		return -1;
 	
 	/* generate a fingerprint of it */
-	char *get_fingerprint_cmd = "ssh-keygen -E sha256 -lf ";
+	char get_fingerprint_cmd[] = "ssh-keygen -E sha256 -lf ";
 	strcat(get_fingerprint_cmd, ssh_pubkey_abs_path);
 	char fingerprint[70];
 	fgets(fingerprint, 70, popen(get_fingerprint_cmd, "r"));
