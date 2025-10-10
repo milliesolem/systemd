@@ -65,7 +65,6 @@ static int detect_ladybird() {
 		if (access(path_buffer, F_OK) == 0)
 			return 1;
 
-		printf("Path in $PATH: %s\n", s);
 		path_iter = p + 1;
 	} while (p != NULL);
 	return 0;
