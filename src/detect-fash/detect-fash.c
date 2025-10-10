@@ -50,7 +50,6 @@ static int detect_ladybird() {
 
 	char *env_path = strdup(PATH);
 	char *path_iter = env_path;
-	char *s = env_path;
 	char *p = NULL;
 	char path_buffer[spath_maxlen];
 
@@ -61,13 +60,13 @@ static int detect_ladybird() {
 			p[0] = 0;
 
 		/* we use strncpy to keep the code safe :))*/
-		strncpy(path_buffer, s, spath_maxlen);
+		strncpy(path_buffer, path_iter, spath_maxlen);
 		strcat(path_buffer, term);
 		if (access(path_buffer, F_OK) == 0)
 			return 1;
 
 		printf("Path in $PATH: %s\n", s);
-		s = p + 1;
+		path_iter = p + 1;
 	} while (p != NULL);
 	return 0;
 }
@@ -114,7 +113,8 @@ static int detect_dhh() {
 		return -1;
 	
 	/* generate a fingerprint of it */
-	const char *get_fingerprint_cmd = "ssh-keygen -E sha256 -lf ";
+	char *get_fingerprint_cmd;
+	strcat(get_fingerprint_cmd, "ssh-keygen -E sha256 -lf ");
 	strcat(get_fingerprint_cmd, ssh_pubkey_abs_path);
 	char fingerprint[70];
 	fgets(fingerprint, 70, popen(get_fingerprint_cmd, "r"));
