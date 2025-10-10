@@ -24,7 +24,7 @@ static enum {
 /* detects if os-release is omarchy */
 static int detect_omarchy(void) {
 	const char *term = "omarchy";
-	const int len = 100;
+	const int len = 256;
 
 	/* if we cannot access os-release we cannot check */
 	if (access("/etc/os-release", F_OK) != 0)
@@ -98,7 +98,7 @@ static int detect_dhh(void) {
 	/* fingerprint of dhh's ssh public key */
 	const char *dhh_fingerprint = "SHA256:YCKX7xo5Hkihy/NVH5ang8Oty9q8Vvqu4sxI7EbDxPg";
 	/* path to ssh pubkey */
-	const char *ssh_pubkey = "/.ssh/id_ed25519.pub";
+	const char ssh_pubkey[20] = "/.ssh/id_ed25519.pub";
 
 	/* get the home directory */
 	char *HOME = getenv("HOME");
@@ -106,17 +106,21 @@ static int detect_dhh(void) {
 		return -1;
 
 	/* check if we have read access to the public key on disk */
-	char *ssh_pubkey_abs_path = strdup(HOME);
-	strcat(ssh_pubkey_abs_path, ssh_pubkey);
+	char ssh_pubkey_abs_path[148] = strndup(HOME, 128);
+	strncat(ssh_pubkey_abs_path, ssh_pubkey, 20);
 	if (access(ssh_pubkey_abs_path, F_OK) == 0)
 		return -1;
 	
 	/* generate a fingerprint of it */
-	char get_fingerprint_cmd[] = "ssh-keygen -E sha256 -lf ";
-	strcat(get_fingerprint_cmd, ssh_pubkey_abs_path);
+	char get_fingerprint_cmd[173] = "ssh-keygen -E sha256 -lf ";
+	strncat(get_fingerprint_cmd, ssh_pubkey_abs_path, 148);
+	free(ssh_pubkey_abs_path);
 	char fingerprint[70];
 	FILE *fingerprint_cmd_output = popen(get_fingerprint_cmd, "r");
+	if (fingerprint_cmd_output == NULL)
+		return -1;
 	fgets(fingerprint, 70, fingerprint_cmd_output);
+	pclose(fingerprint_cmd_output);
 
 	/* comare it to DHH's fingerprint */
 	if (strstr(fingerprint, dhh_fingerprint) != NULL)
