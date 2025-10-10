@@ -3,6 +3,7 @@
 #include <getopt.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "alloc-util.h"
 #include "build.h"
@@ -49,6 +50,7 @@ static int detect_ladybird() {
 
 	char *env_path = strdup(PATH);
 	char *path_iter = env_path;
+	char *s = env_path;
 	char *p = NULL;
 	char path_buffer[spath_maxlen];
 
@@ -72,7 +74,7 @@ static int detect_ladybird() {
 
 /* detects if hyprland is installed */
 static int detect_hyprland() {
-	char *hyprland_config = "/hypr/hyprland.conf";
+	const char *hyprland_config = "/hypr/hyprland.conf";
 	char *XDG_CONFIG_HOME = getenv("XDG_CONFIG_HOME");
 
 	char *hyprland_abs_path;
@@ -96,7 +98,9 @@ static int detect_hyprland() {
 /* detects if this is dhh's computer using his ssh pubkey */
 static int detect_dhh() {
 	/* fingerprint of dhh's ssh public key */
-	char *dhh_fingerprint = "SHA256:YCKX7xo5Hkihy/NVH5ang8Oty9q8Vvqu4sxI7EbDxPg";
+	const char *dhh_fingerprint = "SHA256:YCKX7xo5Hkihy/NVH5ang8Oty9q8Vvqu4sxI7EbDxPg";
+	/* path to ssh pubkey */
+	const char *ssh_pubkey = "/.ssh/id_ed25519.pub";
 
 	/* get the home directory */
 	char *HOME = getenv("HOME");
@@ -104,14 +108,13 @@ static int detect_dhh() {
 		return -1;
 
 	/* check if we have read access to the public key on disk */
-	char *ssh_pubkey = '/.ssh/id_ed25519.pub';
 	char *ssh_pubkey_abs_path = strdup(HOME);
 	strcat(ssh_pubkey_abs_path, ssh_pubkey);
 	if (access(ssh_pubkey_abs_path, F_OK) == 0)
 		return -1;
 	
 	/* generate a fingerprint of it */
-	char *get_fingerprint_cmd = "ssh-keygen -E sha256 -lf ";
+	const char *get_fingerprint_cmd = "ssh-keygen -E sha256 -lf ";
 	strcat(get_fingerprint_cmd, ssh_pubkey_abs_path);
 	char fingerprint[70];
 	fgets(fingerprint, 70, popen(get_fingerprint_cmd, "r"));
