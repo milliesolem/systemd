@@ -101,7 +101,7 @@ static int detect_dhh() {
 		return -1;
 	
 	/* generate a fingerprint of it */
-	char *get_fingerprint_cmd = "ssh-keygen -E 256 -lf ";
+	char *get_fingerprint_cmd = "ssh-keygen -E sha256 -lf ";
 	strcat(get_fingerprint_cmd, ssh_pubkey_abs_path);
 	char fingerprint[70];
 	fgets(fingerprint, 70, popen(get_fingerprint_cmd, "r"));

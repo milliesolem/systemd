@@ -29,7 +29,7 @@ _systemd_detect_fash() {
     local i verb comps
 
     local -A OPTS=(
-        [STANDALONE]='-h --help --version -q --quiet -o --omarchy -l --ladybird'
+        [STANDALONE]='-h --help --version -q --quiet -o --omarchy -l --ladybird -y --hyprland -d --dhh'
     )
 
     _init_completion || return
