@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: LGPL-2.1-or-later */
 
+#include <stdlib.h>
 #include <getopt.h>
 #include <stdio.h>
 #include <string.h>
@@ -39,35 +40,12 @@ static int detect_omarchy(void) {
 	return 0;
 }
 
-/* detects if the binary "ladybird" exists in $PATH */
-static int detect_ladybird(void) {
-	const char *term = "/ladybird";
-	const int spath_maxlen = 256;
-
-	char *PATH = getenv("PATH");
-	if (PATH == NULL)
-		return -1;
-
-	char *env_path = strdup(PATH);
-	char *path_iter = env_path;
-	char *p = NULL;
-	char path_buffer[spath_maxlen];
-
-	/* iterate through $PATH to check if a file `ladybird` exists */
-	do {
-		p = strchr(env_path, ':');
-		if (p != NULL)
-			p[0] = 0;
-
-		/* we use strncpy to keep the code safe :))*/
-		strncpy(path_buffer, path_iter, spath_maxlen);
-		strcat(path_buffer, term);
-		if (access(path_buffer, F_OK) == 0)
-			return 1;
-
-		path_iter = p + 1;
-	} while (p != NULL);
-	return 0;
+/* detects if LadyBird has been built on this machine */
+static unsigned detect_ladybird(void) {
+    char *LADYBIRD_SOURCE_DIR = getenv("LADYBIRD_SOURCE_DIR");
+    if (LADYBIRD_SOURCE_DIR != NULL)
+        return 1;
+    return 0;
 }
 
 /* detects if hyprland is installed */
@@ -98,29 +76,42 @@ static int detect_dhh(void) {
 	/* fingerprint of dhh's ssh public key */
 	const char *dhh_fingerprint = "SHA256:YCKX7xo5Hkihy/NVH5ang8Oty9q8Vvqu4sxI7EbDxPg";
 	/* path to ssh pubkey */
-	const char ssh_pubkey[20] = "/.ssh/id_ed25519.pub";
+	const char *ssh_pubkey = "/.ssh/id_ed25519.pub";
+    /* command to generate fingerprint */
+    const char *ssh_fingerpint_cmd = "ssh-keygen -E sha256 -lf ";
+    /* ssh path length */
+    const int ssh_path_maxlength = 148;
 
 	/* get the home directory */
 	char *HOME = getenv("HOME");
+    
 	if (HOME == NULL)
 		return -1;
-
+    puts(HOME);
+    printf("%d\n",sizeof(HOME));
 	/* check if we have read access to the public key on disk */
-	char *ssh_pubkey_abs_path = strndup(HOME, 128);
-	strncat(ssh_pubkey_abs_path, ssh_pubkey, 20);
-	if (access(ssh_pubkey_abs_path, F_OK) == 0)
+    char *ssh_pubkey_abs_path = (char *)malloc(strlen(HOME) + strlen(ssh_pubkey) + 1);
+	strcat(ssh_pubkey_abs_path, HOME);
+	strcat(ssh_pubkey_abs_path, ssh_pubkey);
+    puts(ssh_pubkey_abs_path);
+	if (access(ssh_pubkey_abs_path, F_OK) != 0)
 		return -1;
 	
 	/* generate a fingerprint of it */
-	char *get_fingerprint_cmd = "ssh-keygen -E sha256 -lf ";
-	strncat(get_fingerprint_cmd, ssh_pubkey_abs_path, 148);
-	free(ssh_pubkey_abs_path);
+	char *get_fingerprint_cmd = (char *)malloc(strlen(ssh_fingerpint_cmd) + strlen(ssh_pubkey_abs_path) + 1);
+	strcat(get_fingerprint_cmd, ssh_fingerpint_cmd);
+	strcat(get_fingerprint_cmd, ssh_pubkey_abs_path);
+	
 	char fingerprint[70];
 	FILE *fingerprint_cmd_output = popen(get_fingerprint_cmd, "r");
+	
 	if (fingerprint_cmd_output == NULL)
 		return -1;
 	fgets(fingerprint, 70, fingerprint_cmd_output);
+
+	/* free memory */
 	pclose(fingerprint_cmd_output);
+	free(ssh_pubkey_abs_path);
 	free(get_fingerprint_cmd);
 
 	/* comare it to DHH's fingerprint */
