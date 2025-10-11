@@ -79,21 +79,16 @@ static int detect_dhh(void) {
 	const char *ssh_pubkey = "/.ssh/id_ed25519.pub";
     /* command to generate fingerprint */
     const char *ssh_fingerpint_cmd = "ssh-keygen -E sha256 -lf ";
-    /* ssh path length */
-    const int ssh_path_maxlength = 148;
 
 	/* get the home directory */
 	char *HOME = getenv("HOME");
     
 	if (HOME == NULL)
 		return -1;
-    puts(HOME);
-    printf("%d\n",sizeof(HOME));
 	/* check if we have read access to the public key on disk */
     char *ssh_pubkey_abs_path = (char *)malloc(strlen(HOME) + strlen(ssh_pubkey) + 1);
 	strcat(ssh_pubkey_abs_path, HOME);
 	strcat(ssh_pubkey_abs_path, ssh_pubkey);
-    puts(ssh_pubkey_abs_path);
 	if (access(ssh_pubkey_abs_path, F_OK) != 0)
 		return -1;
 	
